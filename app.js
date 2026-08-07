@@ -13,6 +13,10 @@ const truthy = v => v === true || String(v).toUpperCase() === 'TRUE';
 const active = row => row && (row.active === undefined || truthy(row.active));
 const available = row => row && (row.available === undefined || truthy(row.available));
 const uid = prefix => `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}`;
+const localDateKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function dateKeyUtc(v){ const p=String(v).split('-').map(Number); return p.length===3 ? Date.UTC(p[0],p[1]-1,p[2]) : NaN; }
+function addDaysKey(v,days){ const ms=dateKeyUtc(v); return Number.isFinite(ms) ? new Date(ms+days*86400000).toISOString().slice(0,10) : ''; }
+function dateKeyDays(start,end){ const a=dateKeyUtc(start),b=dateKeyUtc(end); return Number.isFinite(a)&&Number.isFinite(b) ? Math.round((b-a)/86400000)+1 : NaN; }
 
 function fmtDate(v) {
   if (!v) return '';
@@ -192,9 +196,9 @@ function bindPageControls(){
 async function mutate(operations,message){ await api('batch',{operations}); await reloadData(true); if(message)toast(message); render(); }
 
 function openNewEvent(){
-  const d=new Date();const start=d.toISOString().slice(0,10);const e=new Date(d);e.setDate(e.getDate()+1);const end=e.toISOString().slice(0,10);
+  const start=localDateKey(new Date());const end=addDaysKey(start,1);
   showModal(`<h3>建立活動</h3><form id="eventForm" class="form-grid"><label class="span-2">活動名稱<input name="name" placeholder="例如：8月長時工作" required></label><label>開始日期<input name="start" type="date" value="${start}" required></label><label>結束日期<input name="end" type="date" value="${end}" required></label><p class="span-2">建立後會自動產生每天的午餐、晚餐；最多 4 天。</p><button class="btn primary span-2" type="submit">建立活動</button></form>`);
-  $('#eventForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);const s=new Date(f.get('start'));const en=new Date(f.get('end'));const days=Math.round((en-s)/86400000)+1;if(days<1||days>4)return alert('活動日期請設定 1～4 天。');const eventId=uid('E');const ops=[{type:'insert',table:'events',data:{event_id:eventId,event_name:f.get('name'),start_date:f.get('start'),end_date:f.get('end'),status:'進行中',active:true}}];for(let i=0;i<days;i++){const dd=new Date(s);dd.setDate(dd.getDate()+i);const date=dd.toISOString().slice(0,10);['午餐','晚餐'].forEach(type=>ops.push({type:'insert',table:'meals',data:{meal_id:uid('ML'),event_id:eventId,meal_date:date,meal_type:type,status:'登記中',active:true}}));}try{await mutate(ops,'活動已建立');closeModal();state.selectedEvent=eventId;}catch(err){handleError(err)}};
+  $('#eventForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);const startDate=String(f.get('start'));const endDate=String(f.get('end'));const days=dateKeyDays(startDate,endDate);if(!Number.isFinite(days)||days<1||days>4)return alert('活動日期請設定 1～4 天。');const eventId=uid('E');try{const res=await api('createEvent',{event:{event_id:eventId,event_name:f.get('name'),start_date:startDate,end_date:endDate,status:'進行中',active:true}});state.data.events.push(res.result.event);state.data.meals.push(...res.result.meals);state.selectedEvent=eventId;if(!state.selectedMeal)state.selectedMeal=res.result.meals[0]?.meal_id||'';closeModal();toast('活動已建立');render()}catch(err){handleError(err)}};
 }
 
 async function deleteEvent(id){if(!confirm('確定刪除此活動？系統會封存資料並保留 Log，可追溯但前台不再顯示。'))return;try{await api('archiveEvent',{event_id:id});await reloadData();toast('活動已封存')}catch(e){handleError(e)}}
@@ -231,4 +235,3 @@ $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();$('#login
 $('#logoutBtn').addEventListener('click',()=>{state.password='';state.data=null;$('#passwordInput').value='';$('#mainView').classList.add('hidden');$('#loginView').classList.remove('hidden');});
 $$('.bottom-nav button').forEach(b=>b.addEventListener('click',()=>setPage(b.dataset.page)));
 $('#modal').addEventListener('click',e=>{if(e.target.matches('[data-close-modal]'))closeModal();});
-
