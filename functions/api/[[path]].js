@@ -34,16 +34,30 @@ async function saveOrder(env,s,data){
 async function importLegacy(env,payload,actor){
   const src=payload?.kind==='meal-duty-diagnostic-backup'?payload.state:payload;
   if(!src||!Array.isArray(src.people)||!Array.isArray(src.events)||!Array.isArray(src.orders))throw new Error('不是有效的NAS診斷JSON');
-  const tables=['orders','meal_people','payments','meal_menu_items','meals','events','menu_items','stores','people'];for(const t of tables)await env.DB.prepare(`DELETE FROM ${t}`).run();
-  for(const p of src.people||[])await env.DB.prepare('INSERT INTO people(id,name,group_name,sort_order,active) VALUES(?,?,?,?,?)').bind(p.id,p.name,p.group||'其他',p.sort||0,p.active===false?0:1).run();
-  for(const s of src.stores||[])await env.DB.prepare('INSERT INTO stores(id,name,sort_order,active) VALUES(?,?,?,?)').bind(s.id,s.name,s.sort||0,s.active===false?0:1).run();
-  for(const x of src.menu||[])await env.DB.prepare('INSERT INTO menu_items(id,store_id,name,price,sort_order,active) VALUES(?,?,?,?,?,?)').bind(x.id,x.storeId,x.name,x.price||0,x.sort||0,x.active===false?0:1).run();
-  for(const e of src.events||[])await env.DB.prepare('INSERT INTO events(id,name,start_date,end_date,status,active) VALUES(?,?,?,?,?,?)').bind(e.id,e.name,e.start,e.end,e.status||'進行中',e.active===false?0:1).run();
-  for(const m of src.meals||[])await env.DB.prepare('INSERT INTO meals(id,event_id,meal_date,meal_type,store_id,status,active) VALUES(?,?,?,?,?,?,?)').bind(m.id,m.eventId,m.date,m.type,m.storeId||null,m.status||'登記中',m.active===false?0:1).run();
-  for(const x of src.mealMenus||[])await env.DB.prepare('INSERT INTO meal_menu_items(id,meal_id,source_id,store_id,name,price,special,sort_order,active) VALUES(?,?,?,?,?,?,?,?,?)').bind(x.id,x.mealId,x.sourceId||null,x.storeId||null,x.name,x.price||0,x.special?1:0,x.sort||0,x.active===false?0:1).run();
-  for(const o of src.orders||[])await env.DB.prepare('INSERT INTO orders(id,meal_id,event_id,person_id,meal_menu_id,name,price,qty,note,active,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').bind(o.id,o.mealId,o.eventId,o.personId,o.mealMenuId,o.name,o.price||0,o.qty||1,o.note||'',o.active===false?0:1,o.updatedAt||now()).run();
-  for(const x of src.mealPeople||[])await env.DB.prepare('INSERT INTO meal_people(meal_id,person_id,status,picked,picked_at) VALUES(?,?,?,?,?)').bind(x.mealId,x.personId,x.status||'已訂',x.picked?1:0,x.pickedAt||null).run();
-  for(const x of src.payments||[])await env.DB.prepare('INSERT INTO payments(event_id,person_id,paid,paid_at) VALUES(?,?,?,?)').bind(x.eventId,x.personId,x.paid?1:0,x.paidAt||null).run();
+  const people=[...(src.people||[])],stores=[...(src.stores||[])],events=[...(src.events||[])],meals=[...(src.meals||[])];
+  const peopleIds=new Set(people.map(x=>x.id)),storeIds=new Set(stores.map(x=>x.id)),eventIds=new Set(events.map(x=>x.id)),mealIds=new Set(meals.map(x=>x.id));
+  const addPerson=id=>{if(id&&!peopleIds.has(id)){peopleIds.add(id);people.push({id,name:`保留人員（${id}）`,group:'其他',active:false})}};
+  const addStore=id=>{if(id&&!storeIds.has(id)){storeIds.add(id);stores.push({id,name:`保留店家（${id}）`,active:false})}};
+  const addEvent=(id,date='2000-01-01')=>{if(id&&!eventIds.has(id)){eventIds.add(id);events.push({id,name:`保留活動（${id}）`,start:date,end:date,status:'已結束',active:false})}};
+  const addMeal=(id,eventId,date='2000-01-01')=>{if(id&&!mealIds.has(id)){const eid=eventId||`legacy-event-${id}`;addEvent(eid,date);mealIds.add(id);meals.push({id,eventId:eid,date,type:'舊餐次',status:'停止登記',active:false})}};
+  for(const x of src.menu||[])addStore(x.storeId);
+  for(const x of src.mealMenus||[]){addMeal(x.mealId,null);addStore(x.storeId)}
+  for(const x of meals){addEvent(x.eventId,x.date);addStore(x.storeId)}
+  for(const x of src.orders||[]){addPerson(x.personId);addEvent(x.eventId);addMeal(x.mealId,x.eventId)}
+  for(const x of src.mealPeople||[]){addPerson(x.personId);addMeal(x.mealId,null)}
+  for(const x of src.payments||[]){addPerson(x.personId);addEvent(x.eventId)}
+  let stage='準備匯入';
+  try{
+    stage='人員';for(const p of people)await env.DB.prepare("INSERT INTO people(id,name,group_name,sort_order,active) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,group_name=excluded.group_name,sort_order=excluded.sort_order,active=excluded.active").bind(p.id,p.name,p.group||'其他',p.sort||0,p.active===false?0:1).run();
+    stage='店家';for(const s of stores)await env.DB.prepare("INSERT INTO stores(id,name,sort_order,active) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,sort_order=excluded.sort_order,active=excluded.active").bind(s.id,s.name,s.sort||0,s.active===false?0:1).run();
+    stage='店家菜單';for(const x of src.menu||[])await env.DB.prepare("INSERT INTO menu_items(id,store_id,name,price,sort_order,active) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET store_id=excluded.store_id,name=excluded.name,price=excluded.price,sort_order=excluded.sort_order,active=excluded.active").bind(x.id,x.storeId,x.name,x.price||0,x.sort||0,x.active===false?0:1).run();
+    stage='活動';for(const e of events)await env.DB.prepare("INSERT INTO events(id,name,start_date,end_date,status,active) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,start_date=excluded.start_date,end_date=excluded.end_date,status=excluded.status,active=excluded.active").bind(e.id,e.name,e.start||'2000-01-01',e.end||e.start||'2000-01-01',e.status||'進行中',e.active===false?0:1).run();
+    stage='餐次';for(const m of meals)await env.DB.prepare("INSERT INTO meals(id,event_id,meal_date,meal_type,store_id,status,active) VALUES(?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET event_id=excluded.event_id,meal_date=excluded.meal_date,meal_type=excluded.meal_type,store_id=excluded.store_id,status=excluded.status,active=excluded.active").bind(m.id,m.eventId,m.date||'2000-01-01',m.type||'舊餐次',m.storeId||null,m.status||'登記中',m.active===false?0:1).run();
+    stage='餐次菜單';for(const x of src.mealMenus||[])await env.DB.prepare("INSERT INTO meal_menu_items(id,meal_id,source_id,store_id,name,price,special,sort_order,active) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET meal_id=excluded.meal_id,source_id=excluded.source_id,store_id=excluded.store_id,name=excluded.name,price=excluded.price,special=excluded.special,sort_order=excluded.sort_order,active=excluded.active").bind(x.id,x.mealId,x.sourceId||null,x.storeId||null,x.name,x.price||0,x.special?1:0,x.sort||0,x.active===false?0:1).run();
+    stage='訂單';for(const o of src.orders||[])await env.DB.prepare("INSERT INTO orders(id,meal_id,event_id,person_id,meal_menu_id,name,price,qty,note,active,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET meal_id=excluded.meal_id,event_id=excluded.event_id,person_id=excluded.person_id,meal_menu_id=excluded.meal_menu_id,name=excluded.name,price=excluded.price,qty=excluded.qty,note=excluded.note,active=excluded.active,updated_at=excluded.updated_at").bind(o.id,o.mealId,o.eventId,o.personId,o.mealMenuId,o.name,o.price||0,o.qty||1,o.note||'',o.active===false?0:1,o.updatedAt||now()).run();
+    stage='領餐狀態';for(const x of src.mealPeople||[])await env.DB.prepare("INSERT INTO meal_people(meal_id,person_id,status,picked,picked_at) VALUES(?,?,?,?,?) ON CONFLICT(meal_id,person_id) DO UPDATE SET status=excluded.status,picked=excluded.picked,picked_at=excluded.picked_at").bind(x.mealId,x.personId,x.status||'已訂',x.picked?1:0,x.pickedAt||null).run();
+    stage='收費狀態';for(const x of src.payments||[])await env.DB.prepare("INSERT INTO payments(event_id,person_id,paid,paid_at) VALUES(?,?,?,?) ON CONFLICT(event_id,person_id) DO UPDATE SET paid=excluded.paid,paid_at=excluded.paid_at").bind(x.eventId,x.personId,x.paid?1:0,x.paidAt||null).run();
+  }catch(error){throw new Error(`匯入「${stage}」時失敗：${error.message}`)}
   await log(env,actor,'IMPORT_LEGACY','system','',`${src.people.length}人｜${(src.stores||[]).length}店｜${src.events.length}活動｜${src.orders.length}訂單`);
   return{people:src.people.length,stores:(src.stores||[]).length,events:src.events.length,meals:(src.meals||[]).length,orders:src.orders.length};
 }
