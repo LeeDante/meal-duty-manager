@@ -26,12 +26,14 @@
 .payment-person small{display:block;color:var(--muted)}
 .payment-person button{padding:8px 9px}
 .payment-actions{display:flex;gap:6px}
-.payment-shot{border:2px solid #172033;border-radius:12px;padding:10px}
-.payment-shot h3,.payment-shot p{margin:0 0 7px}
+.payment-shot{border:2px solid #172033;border-radius:12px;padding:8px}
+.payment-shot h3,.payment-shot p{margin:0 0 5px}
+.payment-shot-note{font-size:.72rem;color:var(--muted);line-height:1.2}
 .payment-shot>div{display:grid;grid-template-columns:repeat(2,1fr)}
-.payment-shot span{display:grid;grid-template-columns:1fr auto;gap:3px;padding:7px;border:1px solid #e5e7eb}
-.payment-shot em{font-style:normal}
-.payment-shot small{grid-column:1/-1;color:var(--muted)}
+.payment-shot span{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;align-items:center;min-height:38px;padding:4px 6px;border:1px solid #e5e7eb;font-size:.76rem;line-height:1.15}
+.payment-shot span.paid{background:#dcfce7}
+.payment-shot span b{min-width:0;overflow-wrap:anywhere}
+.payment-shot em{font-style:normal;font-weight:800;white-space:nowrap}
 .permission-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #edf0f4}
 .permission-row small{display:block;color:var(--muted)}
 .permission-help{margin:0 0 5px;font-size:.8rem}
