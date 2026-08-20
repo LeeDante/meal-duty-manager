@@ -278,6 +278,10 @@
 .event-create input{width:100%;min-width:0;padding:9px;border:1px solid var(--line);border-radius:9px;color:var(--text);background:#fff}
 
 .event-create button{grid-column:1/-1}
+.event-type-options{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;margin:0;padding:8px 10px 10px;border:1px solid var(--line);border-radius:10px}
+.event-type-options legend{padding:0 5px;font-size:.78rem;color:var(--muted)}
+.event-type-option{display:flex!important;align-items:center;gap:6px;padding:7px 11px;border:1px solid var(--line);border-radius:9px;background:#f8fafc;color:var(--text)!important;font-size:.9rem!important;font-weight:700}
+.event-type-option input{width:19px!important;height:19px;margin:0;padding:0}
 
 .event-list{display:grid;gap:10px}
 
