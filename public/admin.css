@@ -475,3 +475,12 @@
 .purchase-grid em{font-size:.52rem}
 
 }
+
+.store-card summary>span:first-child{display:grid;gap:2px;min-width:0}
+.store-card summary small{color:var(--muted);font-size:.72rem;font-weight:650}
+.spice-admin-badge{display:block;width:max-content;margin-top:3px;padding:2px 6px;border-radius:999px;background:#fff1f2;color:#be123c;font-size:.65rem;font-weight:800}
+.spice-admin-option{display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:#fff7f7;font-size:.76rem;font-weight:800;color:#be123c}
+.spice-admin-option input{width:18px;height:18px;margin:0;padding:0}
+.menu-add-form{grid-template-columns:minmax(0,1fr) minmax(90px,.45fr) auto auto}
+.procurement-sheet header h3 small{display:block;margin-top:3px;color:var(--muted);font-size:.68rem;font-weight:700}
+@media(max-width:520px){.menu-add-form{grid-template-columns:1fr 1fr}.menu-add-form input[name="name"]{grid-column:1/-1;grid-row:1}.menu-add-form input[name="price"]{grid-column:1;grid-row:2}.menu-add-form .spice-admin-option{grid-column:2;grid-row:2}.menu-add-form button{grid-column:1/-1;grid-row:3}}

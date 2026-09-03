@@ -1,0 +1,27 @@
+{
+  "kind": "meal-duty-stores",
+  "version": 2,
+  "stores": [
+    {
+      "name": "玉麒麟臭臭鍋（Yu Kyilin Hot Pot）梧棲總店",
+      "phone": "2658-0855",
+      "menu": [
+        { "name": "剝皮辣椒雞", "price": 190, "spiceRequired": true },
+        { "name": "藥膳羊肉鍋", "price": 160, "spiceRequired": true },
+        { "name": "十全鴨寶鍋", "price": 160, "spiceRequired": true },
+        { "name": "北海鱈魚鍋", "price": 140, "spiceRequired": true },
+        { "name": "大腸臭臭鍋", "price": 140, "spiceRequired": true },
+        { "name": "海鮮什錦鍋", "price": 140, "spiceRequired": true },
+        { "name": "韓式泡菜鍋", "price": 140, "spiceRequired": true },
+        { "name": "上選豬肉鍋", "price": 140, "spiceRequired": true },
+        { "name": "雪花牛肉鍋", "price": 150, "spiceRequired": true },
+        { "name": "香濃咖哩鍋", "price": 160, "spiceRequired": true },
+        { "name": "招牌麻辣鍋", "price": 170, "spiceRequired": true },
+        { "name": "起士牛奶鍋", "price": 170, "spiceRequired": true },
+        { "name": "沙茶魚頭鍋", "price": 170, "spiceRequired": true },
+        { "name": "養生素食鍋（素）", "price": 140, "spiceRequired": true },
+        { "name": "蕃茄蔬菜鍋（素）", "price": 160, "spiceRequired": true }
+      ]
+    }
+  ]
+}
