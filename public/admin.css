@@ -305,6 +305,10 @@
 
 .meal-manage-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 
+.meal-status-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+
+.meal-hidden{opacity:.72;background:#f8fafc}
+
 .meal-store-tools{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;margin-top:8px}
 
 .meal-store-tools select,.meal-special-form input{min-width:0;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px}
