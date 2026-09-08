@@ -86,7 +86,9 @@
 
 #storeList.sorting .store-drag-handle{display:flex}
 
-#storeList.sorting .store-card.dragging{opacity:.58;border:2px solid #2563eb;box-shadow:0 10px 24px #2563eb35}
+#storeList.sorting .store-card.dragging{opacity:.2;border:2px dashed #60a5fa;background:#eff6ff}
+.store-drag-ghost{position:fixed!important;z-index:1000;margin:0!important;pointer-events:none;opacity:.96!important;border:2px solid #2563eb!important;background:#fff!important;box-shadow:0 18px 40px #0f172a40!important;transform:scale(1.015);transition:box-shadow .12s,transform .12s}
+.store-drag-ghost summary{cursor:grabbing!important}
 
 #storeList.sorting .store-card summary::marker{content:''}
 
