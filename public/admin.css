@@ -62,7 +62,7 @@
 .payment-shot>div{grid-template-columns:repeat(2,1fr)}
 }
 
-.event-archive{display:flex;justify-content:flex-end;padding:.65rem .75rem 0}
+.event-archive{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;padding:.65rem .75rem 0}
 
 .import-state small{color:var(--muted)}
 
@@ -73,6 +73,22 @@
 .store-card{border:1px solid var(--line);border-radius:12px;margin:9px 0;overflow:hidden}
 
 .store-card summary{display:flex;justify-content:space-between;align-items:center;padding:13px;cursor:pointer;background:#f8fafc}
+
+.store-drag-handle{display:none;flex:0 0 42px;width:42px;height:42px;align-items:center;justify-content:center;border:1px solid #93c5fd;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:1.25rem;cursor:grab;user-select:none;touch-action:none}
+
+.store-sort-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+#storeList.sorting .store-card{background:#fff;box-shadow:0 2px 8px #0f172a12}
+
+#storeList.sorting .store-card summary{justify-content:flex-start;gap:10px;cursor:default}
+
+#storeList.sorting .store-card summary>span:nth-child(2){flex:1}
+
+#storeList.sorting .store-drag-handle{display:flex}
+
+#storeList.sorting .store-card.dragging{opacity:.58;border:2px solid #2563eb;box-shadow:0 10px 24px #2563eb35}
+
+#storeList.sorting .store-card summary::marker{content:''}
 
 .store-card>div{padding:0 13px}
 
@@ -110,6 +126,8 @@
 .code-row input{flex:1}
 
 }
+
+@media(max-width:520px){.store-sort-actions button{flex:1 1 auto}.store-sort-actions span{flex:1 0 100%}.event-archive{display:grid;grid-template-columns:1fr}.event-archive button{width:100%}}
 
 
 .admin-title,.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
