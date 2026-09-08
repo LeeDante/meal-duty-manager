@@ -72,7 +72,8 @@
 
 .store-card{border:1px solid var(--line);border-radius:12px;margin:9px 0;overflow:hidden}
 
-.store-card summary{display:flex;justify-content:space-between;align-items:center;padding:13px;cursor:pointer;background:#f8fafc}
+.store-card summary{display:flex;justify-content:flex-start;align-items:center;gap:10px;padding:13px;cursor:pointer;background:#f8fafc}
+.store-card summary>span:nth-child(2){flex:1;text-align:left}
 
 .store-drag-handle{display:none;flex:0 0 42px;width:42px;height:42px;align-items:center;justify-content:center;border:1px solid #93c5fd;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:1.25rem;cursor:grab;user-select:none;touch-action:none}
 .store-sort-buttons{display:none;gap:5px;margin-left:auto}
@@ -82,9 +83,7 @@
 
 #storeList.sorting .store-card{background:#fff;box-shadow:0 2px 8px #0f172a12}
 
-#storeList.sorting .store-card summary{justify-content:flex-start;gap:10px;cursor:default}
-
-#storeList.sorting .store-card summary>span:nth-child(2){flex:1}
+#storeList.sorting .store-card summary{cursor:default}
 
 #storeList.sorting .store-drag-handle{display:flex}
 #storeList.sorting .store-sort-buttons{display:flex}
