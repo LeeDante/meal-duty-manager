@@ -7,3 +7,11 @@
 .spice-options{display:grid;gap:8px}
 .spice-option{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:#fff}
 .spice-option b{font-size:1rem}
+
+/* Sauce selector: amber, separate from red spiciness controls */
+.sauce-badge{background:#fff4d6;color:#8a5600}
+.sauce-picker-button{border-color:#e4ba58;background:#fff7df;color:#8a5600}
+.sauce-picker-button strong{background:#b7791f;color:#fff}
+.sauce-modal .spice-option{border-color:#e4ba58;background:#fffbef}
+.sauce-modal .spice-option b{color:#8a5600}
+.sauce-modal .spice-help{color:#8a5600}
